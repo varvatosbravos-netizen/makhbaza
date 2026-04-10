@@ -14,7 +14,6 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
 /* --- THEME SYSTEM --- */
-/* Thème clair par défaut */
 :root {
   --A:#BA7517;--AL:#FAEEDA;--AM:#FAC775;--AD:#633806;--AX:#412402;
   --T:#1D9E75;--TL:#E1F5EE;--TM:#9FE1CB;--TD:#085041;
@@ -27,8 +26,6 @@
   --r:10px;--rl:14px;
   --sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px)
 }
-
-/* Thème sombre forcé */
 :root[data-theme="dark"] {
   --bg:#1c1b18;--bg2:#252420;--bg3:#2e2c27;--br:#38362f;--br2:#4a473e;
   --tx:#f0ede6;--tx2:#a09d96;--tx3:#6b6860;
@@ -36,8 +33,6 @@
   --TL:#0a2018;--TM:#0f4a30;--TD:#9FE1CB;
   --CL:#2a1208;--CD:#F0997B;--GL:#111f08;--GD:#C0DD97;--PL:#1a1940;--PD:#AFA9EC;
 }
-
-/* Thème auto selon le système (si non forcé en clair) */
 @media(prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg:#1c1b18;--bg2:#252420;--bg3:#2e2c27;--br:#38362f;--br2:#4a473e;
@@ -380,7 +375,7 @@ function loadLocal(){
   }catch(e){}
 }
 function dataForSync(){
-  return localStorage.getItem('makhbaza_v4') || JSON.stringify(S);
+  return JSON.stringify(S);
 }
 function mergeFromSync(raw){
   try{
@@ -391,13 +386,13 @@ function mergeFromSync(raw){
     S.drivers=d.drivers||S.drivers;
     S.settlements=d.settlements||S.settlements||[];
     S._ts=d._ts||Date.now();
-    localStorage.setItem('makhbaza_v4', raw);
+    localStorage.setItem('makhbaza_v4', JSON.stringify(S));
     render(); 
-  }catch(e){toast('خطأ في قراءة البيانات','e')}
+  }catch(e){toast('خطأ في قراءة البيانات المستوردة','e')}
 }
 
 // ═══════════════════════════════════════════════
-//  GOOGLE DRIVE
+//  GOOGLE DRIVE (FIABLE ET ROBUSTE)
 // ═══════════════════════════════════════════════
 function initGoogleAuth() {
   if (CFG.googleClientId) {
@@ -405,7 +400,7 @@ function initGoogleAuth() {
       client_id: CFG.googleClientId,
       scope: 'https://www.googleapis.com/auth/drive.appdata',
       callback: (resp) => {
-        if (resp.error) { setSync('err'); toast('فشل تسجيل الدخول: '+resp.error, 'e'); renderSettings(); return; }
+        if (resp.error) { setSync('err'); toast('فشل تسجيل الدخول', 'e'); renderSettings(); return; }
         GD.token = resp.access_token;
         syncDrive();
       }
@@ -420,8 +415,40 @@ function googleSignIn(){
     setSync('syncing'); renderSettings();
     tokenClient.requestAccessToken();
   } else {
-    toast('جاري تحميل خدمات جوجل، انتظر لحظة','w');
+    toast('جاري تحميل خدمات جوجل...','w');
   }
+}
+
+// Nouvelle méthode d'upload beaucoup plus sûre (Simple Upload)
+async function uploadD(content){
+  if(!GD.fileId) throw new Error('No File ID');
+  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files/'+GD.fileId+'?uploadType=media', {
+    method: 'PATCH',
+    headers: {
+      'Authorization': 'Bearer ' + GD.token,
+      'Content-Type': 'application/json'
+    },
+    body: content
+  });
+  if(!res.ok) throw new Error('Upload échoué : ' + res.status);
+  return await res.json();
+}
+
+async function createD(content){
+  // Etape 1: Créer le fichier vide avec les métadonnées
+  const resMeta = await fetch('https://www.googleapis.com/drive/v3/files', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + GD.token,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ name: 'makhbaza_backup.json', parents: ['appDataFolder'] })
+  });
+  if(!resMeta.ok) throw new Error('Création métadonnées échouée');
+  const meta = await resMeta.json();
+  GD.fileId = meta.id;
+  // Etape 2: Envoyer le contenu
+  await uploadD(content);
 }
 
 async function syncDrive(){
@@ -430,14 +457,16 @@ async function syncDrive(){
   try{
     const sr=await fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27makhbaza_backup.json%27&fields=files(id)',
       {headers:{Authorization:'Bearer '+GD.token}});
+    if(!sr.ok) throw new Error('Recherche échouée');
     const sd=await sr.json();
-    if(sd.error){handleDE(sd.error);return;}
     
     if(sd.files?.length>0){
       GD.fileId=sd.files[0].id;
       const dr=await fetch('https://www.googleapis.com/drive/v3/files/'+GD.fileId+'?alt=media',
         {headers:{Authorization:'Bearer '+GD.token}});
+      if(!dr.ok) throw new Error('Lecture échouée');
       const cloudText=await dr.text();
+      
       let cloudData={};
       try{ cloudData = JSON.parse(cloudText); }catch(e){}
       
@@ -446,36 +475,63 @@ async function syncDrive(){
       
       if(cloudTs > localTs){
         mergeFromSync(cloudText);
-        setSync('ok');renderSettings();toast('📥 تم جلب البيانات من Drive');
+        setSync('ok');renderSettings();toast('📥 تم جلب البيانات من السحابة');
       } else if(localTs > cloudTs){
         await uploadD(dataForSync());
-        setSync('ok');renderSettings();toast('📤 تم رفع التحديثات إلى Drive');
+        setSync('ok');renderSettings();toast('📤 تم رفع التحديثات');
       } else {
         setSync('ok');renderSettings();toast('✅ البيانات متزامنة');
       }
     }else{
-      save();
+      // Fichier inexistant, on le crée
+      save(); // Force l'actualisation du timestamp
       await createD(dataForSync());
-      setSync('ok');renderSettings();toast('✓ تم إنشاء ملف النسخ الاحتياطي');
+      setSync('ok');renderSettings();toast('✓ تم إنشاء ملف السحابة');
     }
-  }catch(e){setSync('err');renderSettings();toast('خطأ في الاتصال','e')}
-}
-
-async function uploadD(content){
-  const b='mb_b',meta=JSON.stringify({name:'makhbaza_backup.json',parents:['appDataFolder']});
-  const body=`--${b}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${b}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${b}--`;
-  if(GD.fileId){
-    return fetch('https://www.googleapis.com/upload/drive/v3/files/'+GD.fileId+'?uploadType=multipart',
-      {method:'PATCH',headers:{Authorization:'Bearer '+GD.token,'Content-Type':'multipart/related; boundary='+b},body});
+  }catch(e){
+    console.error(e);
+    setSync('err');renderSettings();toast('خطأ في الاتصال بالانترنت أو السحابة','e');
   }
 }
-async function createD(content){
-  const b='mb_b',meta=JSON.stringify({name:'makhbaza_backup.json',parents:['appDataFolder']});
-  const body=`--${b}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${b}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${b}--`;
-  const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
-    {method:'POST',headers:{Authorization:'Bearer '+GD.token,'Content-Type':'multipart/related; boundary='+b},body});
-  const d=await r.json();if(d.id)GD.fileId=d.id;
+
+// NOUVELLES FONCTIONS MANUELLES POUR SAUVER L'UTILISATEUR EN CAS DE CONFLIT
+async function forceDownload() {
+    if(!GD.token){toast('يرجى الربط مع جوجل أولاً','e');return;}
+    setSync('syncing');renderSettings();
+    try {
+        const sr=await fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27makhbaza_backup.json%27&fields=files(id)',
+          {headers:{Authorization:'Bearer '+GD.token}});
+        const sd=await sr.json();
+        if(sd.files?.length>0){
+            GD.fileId=sd.files[0].id;
+            const dr=await fetch('https://www.googleapis.com/drive/v3/files/'+GD.fileId+'?alt=media', {headers:{Authorization:'Bearer '+GD.token}});
+            if(!dr.ok) throw new Error('Lecture');
+            mergeFromSync(await dr.text());
+            setSync('ok');renderSettings();toast('📥 تم استرجاع البيانات إجبارياً');
+        } else {
+            setSync('err');renderSettings();toast('لا يوجد ملف في السحابة','e');
+        }
+    } catch(e) { setSync('err');renderSettings();toast('خطأ في التنزيل','e'); }
 }
+
+async function forceUpload() {
+    if(!GD.token){toast('يرجى الربط مع جوجل أولاً','e');return;}
+    setSync('syncing');renderSettings();
+    save(); // update local TS
+    try {
+        const sr=await fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27makhbaza_backup.json%27&fields=files(id)',
+          {headers:{Authorization:'Bearer '+GD.token}});
+        const sd=await sr.json();
+        if(sd.files?.length>0){
+            GD.fileId=sd.files[0].id;
+            await uploadD(dataForSync());
+        } else {
+            await createD(dataForSync());
+        }
+        setSync('ok');renderSettings();toast('📤 تم رفع البيانات إجبارياً');
+    } catch(e) { setSync('err');renderSettings();toast('خطأ في الرفع','e'); }
+}
+
 function handleDE(err){GD.token=null;setSync('err');renderSettings();toast(err.code===401?'انتهت جلسة Google':'خطأ: '+err.message,'e');}
 function setSync(s){GD.status=s;}
 function syncStatusHtml(){
@@ -1226,7 +1282,18 @@ function renderSettings(){
       </div>
     </div>`;
 
-  h+=`<div class="slbl">💾 النسخ الاحتياطي اليدوي</div><div class="card">
+  // LES NOUVEAUX BOUTONS DE FORÇAGE POUR SÉCURISER L'UTILISATEUR
+  if(connected) {
+      h+=`<div class="slbl">⚡ التحكم اليدوي بالسحابة (في حالة المشاكل)</div><div class="card">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button class="btn btn-s" onclick="forceDownload()" style="font-size:13px;padding:10px">📥 تنزيل إجباري</button>
+          <button class="btn btn-s" onclick="forceUpload()" style="font-size:13px;padding:10px">📤 رفع إجباري</button>
+        </div>
+        <div style="font-size:11px;color:var(--tx2);margin-top:8px;text-align:center">استخدمها فقط إذا لم تنتقل بياناتك لجهاز آخر</div>
+      </div>`;
+  }
+
+  h+=`<div class="slbl">💾 النسخ الاحتياطي المحلي</div><div class="card">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <button class="btn btn-s" onclick="exportData()">📤 تصدير JSON</button>
       <button class="btn btn-s" onclick="document.getElementById('imp-f').click()">📥 استيراد</button>
@@ -1242,7 +1309,7 @@ function renderSettings(){
     <button class="btn btn-d" style="margin-top:14px" onclick="clearData()">🗑️ حذف جميع البيانات</button>
   </div>
 
-  <div style="text-align:center;padding:20px 0 10px;font-size:11px;color:var(--tx3)">مخبزتي v4.2 · يعمل بدون اتصال</div>`;
+  <div style="text-align:center;padding:20px 0 10px;font-size:11px;color:var(--tx3)">مخبزتي v5.0 · مزامنة السحابة المتقدمة</div>`;
 
   document.getElementById('scr-settings').innerHTML=h;
 }
