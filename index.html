@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#BA7517">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="مخبزتي">
+<title>مخبزتي</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --A:#BA7517;--AL:#FAEEDA;--AM:#FAC775;--AD:#633806;--AX:#412402;
+  --T:#1D9E75;--TL:#E1F5EE;--TM:#9FE1CB;--TD:#085041;
+  --CL:#FAECE7;--CD:#4A1B0C;
+  --GL:#EAF3DE;--GD:#27500A;
+  --PL:#EEEDFE;--PD:#3C3489;
+  --bg:#fff;--bg2:#f5f4f0;--bg3:#ede9e0;
+  --br:#e0ddd5;--br2:#ccc9c0;
+  --tx:#1a1917;--tx2:#6b6860;--tx3:#9c9990;
+  --r:10px;--rl:14px;
+  --sb:env(safe-area-inset-bottom,0px);
+  --st:env(safe-area-inset-top,0px)
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1c1b18;--bg2:#252420;--bg3:#2e2c27;
+  --br:#38362f;--br2:#4a473e;
+  --tx:#f0ede6;--tx2:#a09d96;--tx3:#6b6860;
+  --AL:#2a2010;--AM:#5c3d0a;--AD:#FAC775;--AX:#FAEEDA;
+  --TL:#0a2018;--TM:#0f4a30;--TD:#9FE1CB;
+  --CL:#2a1208;--CD:#F0997B;
+  --GL:#111f08;--GD:#C0DD97;
+  --PL:#1a1940;--PD:#AFA9EC
+}}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:var(--tx);font-size:16px}
+#app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto}
+.topbar{background:var(--bg);border-bottom:1px solid var(--br);padding:10px 16px 9px;padding-top:calc(10px + var(--st));flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.tb-logo{font-size:18px;font-weight:700;color:var(--A)}
+.tb-sub{font-size:11px;color:var(--tx2);margin-top:1px}
+.tb-ca-val{font-size:17px;font-weight:700;color:var(--A);text-align:left}
+.tb-ca-lbl{font-size:10px;color:var(--tx2);text-align:left}
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.screen{display:none;padding:12px 14px 20px;animation:fi .15s ease}
+.screen.on{display:block}
+@keyframes fi{from{opacity:.5;transform:translateY(3px)}to{opacity:1;transform:none}}
+.nav{background:var(--bg);border-top:1px solid var(--br);display:flex;flex-shrink:0;padding-bottom:var(--sb)}
+.nb{flex:1;padding:9px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;color:var(--tx2);font-size:9px;font-family:inherit;transition:color .15s;position:relative;min-width:0}
+.nb.on{color:var(--A)}
+.nb.on::after{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:var(--A);border-radius:0 0 2px 2px}
+.nb svg{width:21px;height:21px;stroke-width:1.8}
+.slbl{font-size:11px;color:var(--tx2);letter-spacing:.06em;margin:16px 0 8px;font-weight:600;text-transform:uppercase}
+.card{background:var(--bg);border:1px solid var(--br);border-radius:var(--rl);padding:14px;margin-bottom:10px}
+.card-flat{background:var(--bg2);border-radius:var(--r);padding:12px;margin-bottom:10px}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.met{background:var(--bg2);border-radius:var(--r);padding:11px 13px}
+.met-lbl{font-size:11px;color:var(--tx2);margin-bottom:4px;font-weight:600}
+.met-val{font-size:22px;font-weight:700;color:var(--tx);line-height:1}
+.met-sub{font-size:11px;color:var(--tx2);margin-top:3px}
+.fg{margin-bottom:12px}
+.fl{font-size:13px;color:var(--tx2);margin-bottom:5px;display:block;font-weight:500}
+input[type=text],input[type=number],input[type=time],input[type=password],select{
+  width:100%;padding:11px 13px;border:1px solid var(--br2);border-radius:var(--r);
+  background:var(--bg);color:var(--tx);font-size:15px;font-family:inherit;
+  direction:rtl;-webkit-appearance:none;appearance:none;transition:border .15s
+}
+input:focus,select:focus{outline:none;border-color:var(--A);box-shadow:0 0 0 3px color-mix(in srgb,var(--A) 14%,transparent)}
+input[type=number]{text-align:center}
+.btn{width:100%;padding:13px;border-radius:var(--r);border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s,transform .1s}
+.btn:active{transform:scale(.98);opacity:.85}
+.btn-p{background:var(--A);color:#fff}
+.btn-s{background:var(--bg2);color:var(--tx);border:1px solid var(--br2)}
+.btn-d{background:var(--CL);color:#993C1D;border:1px solid #F0997B}
+.btn-g{background:#4285f4;color:#fff}
+.btn-sm{width:auto;padding:7px 14px;font-size:13px;border-radius:8px}
+.pills{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap}
+.pill{padding:7px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--br2);background:var(--bg2);color:var(--tx2);font-weight:500;transition:all .15s}
+.pill.on{background:var(--AL);color:var(--AD);border-color:var(--AM)}
+.ditem{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--br)}
+.ditem:last-child{border-bottom:none}
+.ddot{width:8px;height:8px;border-radius:50%;background:var(--AM);flex-shrink:0}
+.dinfo{flex:1;min-width:0}
+.dval{font-size:14px;font-weight:600;color:var(--tx)}
+.dmeta{font-size:12px;color:var(--tx2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dtime{font-size:13px;color:var(--AD);font-weight:600;white-space:nowrap}
+.pitem{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--br);cursor:pointer}
+.pitem:last-child{border-bottom:none}
+.pav{width:38px;height:38px;border-radius:50%;background:var(--AL);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--AD);flex-shrink:0}
+.bdg{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:600;white-space:nowrap}
+.bdg-a{background:var(--AL);color:var(--AD)}
+.bdg-t{background:var(--TL);color:var(--TD)}
+.bdg-g{background:var(--GL);color:var(--GD)}
+.bdg-p{background:var(--PL);color:var(--PD)}
+.alrt{padding:11px 14px;border-radius:var(--r);font-size:13px;margin-bottom:12px}
+.alrt-s{background:var(--TL);color:var(--TD);border:1px solid var(--TM)}
+.alrt-w{background:var(--AL);color:var(--AD);border:1px solid var(--AM)}
+.alrt-e{background:var(--CL);color:#993C1D;border:1px solid #F0997B}
+.sum-box{background:var(--AL);border-radius:var(--r);padding:12px 14px;margin-bottom:14px}
+.sum-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:var(--AD)}
+.sum-total{font-size:15px;font-weight:700;border-top:1px solid var(--AM);margin-top:6px;padding-top:8px;color:var(--AX)}
+/* bread type card */
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+.tcard{background:var(--bg2);border-radius:var(--r);padding:11px 10px;border:1px solid var(--br);text-align:center}
+.tcard-img{margin:0 auto 7px;display:block}
+.tcard-nm{font-size:12px;font-weight:600;color:var(--tx);margin-bottom:2px}
+.tcard-pr{font-size:11px;color:var(--tx2);margin-bottom:7px}
+.bbar{margin:5px 0}
+.bbar-head{display:flex;justify-content:space-between;font-size:12px;color:var(--tx2);margin-bottom:3px}
+.btrack{height:8px;background:var(--bg2);border-radius:4px;overflow:hidden}
+.bfill{height:100%;background:var(--AM);border-radius:4px;transition:width .5s}
+.bfill-t{background:var(--TM)}
+.back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--A);cursor:pointer;font-size:14px;font-family:inherit;font-weight:600;padding:0 0 14px}
+.best-time{background:var(--AL);border-radius:var(--r);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.icon-btn{background:none;border:none;color:var(--tx2);cursor:pointer;font-size:18px;padding:6px;line-height:1;border-radius:8px;transition:background .15s}
+.icon-btn:active{background:var(--bg3)}
+.dtag{display:inline-flex;align-items:center;gap:3px;font-size:11px;background:var(--TL);color:var(--TD);padding:2px 8px;border-radius:20px;font-weight:600}
+.price-table{width:100%;border-collapse:collapse;font-size:13px}
+.price-table th{text-align:center;padding:7px 6px;background:var(--bg2);color:var(--tx2);font-weight:600;font-size:11px;border-bottom:1px solid var(--br)}
+.price-table td{padding:7px 6px;border-bottom:1px solid var(--br);text-align:center}
+.price-table tr:last-child td{border-bottom:none}
+.price-table input{width:76px;padding:6px 8px;font-size:14px;text-align:center}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:fi .15s ease}
+.modal{background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 16px;padding-bottom:calc(20px + var(--sb));max-height:88vh;overflow-y:auto}
+.modal-handle{width:40px;height:4px;background:var(--br2);border-radius:2px;margin:0 auto 14px}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:14px}
+.hrow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--br);font-size:13px}
+.hrow:last-child{border-bottom:none}
+.empty{text-align:center;padding:36px 20px;color:var(--tx2);font-size:14px}
+.empty-icon{font-size:36px;margin-bottom:10px}
+.toast{position:fixed;top:76px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 20px;border-radius:20px;font-size:14px;font-weight:600;z-index:400;white-space:nowrap;animation:toastIn .2s ease;pointer-events:none;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+/* settings */
+.srow{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--br)}
+.srow:last-child{border-bottom:none}
+.srow-lbl{font-size:14px;font-weight:500;color:var(--tx)}
+.srow-sub{font-size:12px;color:var(--tx2);margin-top:2px}
+.switch{width:48px;height:27px;background:var(--br2);border-radius:14px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;border:none}
+.switch.on{background:var(--A)}
+.switch::after{content:'';position:absolute;top:3px;right:3px;width:21px;height:21px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch.on::after{transform:translateX(-21px)}
+.sync-status{display:flex;align-items:center;gap:7px;font-size:13px;padding:10px 14px;border-radius:var(--r);margin-bottom:12px}
+.sync-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.sync-ok{background:var(--TL);color:var(--TD)}
+.sync-dot-ok{background:var(--T)}
+.sync-err{background:var(--CL);color:#993C1D}
+.sync-dot-err{background:#D85A30}
+.sync-pending{background:var(--AL);color:var(--AD)}
+.sync-dot-pending{background:var(--A);animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* install banner */
+.install-banner{background:var(--AL);border:1px solid var(--AM);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.install-banner-icon{font-size:28px;flex-shrink:0}
+.install-banner-txt{flex:1;font-size:13px;color:var(--AD);line-height:1.5}
+.install-banner-btn{background:var(--A);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;font-family:inherit}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div>
+      <div class="tb-logo">🍞 مخبزتي</div>
+      <div class="tb-sub" id="tb-date"></div>
+    </div>
+    <div>
+      <div class="tb-ca-val" id="tb-ca">—</div>
+      <div class="tb-ca-lbl">رقم المعاملات اليوم</div>
+    </div>
+  </div>
+  <div class="content" id="content">
+    <div class="screen on" id="scr-home"></div>
+    <div class="screen" id="scr-deliv"></div>
+    <div class="screen" id="scr-pts"></div>
+    <div class="screen" id="scr-stats"></div>
+    <div class="screen" id="scr-settings"></div>
+  </div>
+  <nav class="nav">
+    <button class="nb on" onclick="go('home')" id="n-home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/><path d="M3 12v9h18v-9"/></svg>
+      الرئيسية
+    </button>
+    <button class="nb" onclick="go('deliv')" id="n-deliv">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      تسليم
+    </button>
+    <button class="nb" onclick="go('pts')" id="n-pts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      النقاط
+    </button>
+    <button class="nb" onclick="go('stats')" id="n-stats">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      الإحصاء
+    </button>
+    <button class="nb" onclick="go('settings')" id="n-settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      الإعدادات
+    </button>
+  </nav>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  BREAD SVG IMAGES
+// ═══════════════════════════════════════════════════
+const BREAD_SVG = {
+  sha3ir_k: `<svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="36" cy="40" rx="28" ry="14" fill="#8B5E3C" opacity=".18"/>
+    <ellipse cx="36" cy="37" rx="26" ry="18" fill="#C8874A"/>
+    <ellipse cx="36" cy="35" rx="24" ry="16" fill="#D9995A"/>
+    <ellipse cx="36" cy="34" rx="22" ry="14" fill="#E8AB6A"/>
+    <ellipse cx="36" cy="33" rx="20" ry="12" fill="#F0BC7A"/>
+    <path d="M18 30 Q24 20 36 19 Q48 20 54 30" stroke="#C8874A" stroke-width="1.5" fill="none" opacity=".6"/>
+    <path d="M22 34 Q28 26 36 25 Q44 26 50 34" stroke="#BC7840" stroke-width="1" fill="none" opacity=".4"/>
+    <ellipse cx="28" cy="29" rx="3" ry="1.5" fill="#D9995A" opacity=".6" transform="rotate(-15 28 29)"/>
+    <ellipse cx="44" cy="27" rx="2.5" ry="1.2" fill="#D9995A" opacity=".6" transform="rotate(10 44 27)"/>
+    <ellipse cx="36" cy="26" rx="2" ry="1" fill="#D9995A" opacity=".5"/>
+    <text x="36" y="60" font-size="10" fill="#8B5E3C" text-anchor="middle" font-family="inherit" font-weight="600" opacity=".7">شعير ك</text>
+  </svg>`,
+  sha3ir_s: `<svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="36" cy="42" rx="20" ry="10" fill="#8B5E3C" opacity=".18"/>
+    <ellipse cx="36" cy="39" rx="18" ry="12" fill="#C8874A"/>
+    <ellipse cx="36" cy="38" rx="16" ry="11" fill="#D9995A"/>
+    <ellipse cx="36" cy="37" rx="14" ry="9" fill="#E8AB6A"/>
+    <ellipse cx="36" cy="36" rx="12" ry="7.5" fill="#F0BC7A"/>
+    <path d="M24 34 Q30 27 36 26 Q42 27 48 34" stroke="#C8874A" stroke-width="1.2" fill="none" opacity=".5"/>
+    <ellipse cx="30" cy="31" rx="2" ry="1" fill="#D9995A" opacity=".5" transform="rotate(-10 30 31)"/>
+    <ellipse cx="42" cy="30" rx="1.8" ry="0.9" fill="#D9995A" opacity=".5" transform="rotate(8 42 30)"/>
+    <text x="36" y="57" font-size="9.5" fill="#8B5E3C" text-anchor="middle" font-family="inherit" font-weight="600" opacity=".7">شعير ص</text>
+    <text x="36" y="67" font-size="8.5" fill="#BC7840" text-anchor="middle" font-family="inherit" opacity=".7">جوج=كبيرة</text>
+  </svg>`,
+  dra: `<svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="36" cy="40" rx="28" ry="14" fill="#8B6800" opacity=".15"/>
+    <ellipse cx="36" cy="37" rx="26" ry="18" fill="#C8960A"/>
+    <ellipse cx="36" cy="35" rx="24" ry="16" fill="#D9A81A"/>
+    <ellipse cx="36" cy="34" rx="22" ry="14" fill="#E8BA2A"/>
+    <ellipse cx="36" cy="33" rx="20" ry="12" fill="#F5CC40"/>
+    <path d="M18 30 Q24 20 36 19 Q48 20 54 30" stroke="#C8960A" stroke-width="1.5" fill="none" opacity=".55"/>
+    <path d="M22 34 Q28 26 36 25 Q44 26 50 34" stroke="#BC8800" stroke-width="1" fill="none" opacity=".4"/>
+    <circle cx="29" cy="28" r="2" fill="#E8BA2A" opacity=".7"/>
+    <circle cx="43" cy="27" r="1.8" fill="#E8BA2A" opacity=".7"/>
+    <circle cx="36" cy="26" r="1.5" fill="#E8BA2A" opacity=".6"/>
+    <text x="36" y="60" font-size="10" fill="#8B6800" text-anchor="middle" font-family="inherit" font-weight="600" opacity=".7">ذرة</text>
+  </svg>`,
+  qmh: `<svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="36" cy="40" rx="28" ry="14" fill="#6B5030" opacity=".15"/>
+    <ellipse cx="36" cy="37" rx="26" ry="18" fill="#A8784A"/>
+    <ellipse cx="36" cy="35" rx="24" ry="16" fill="#BA8A5C"/>
+    <ellipse cx="36" cy="34" rx="22" ry="14" fill="#CC9C6E"/>
+    <ellipse cx="36" cy="33" rx="20" ry="12" fill="#DCAD80"/>
+    <path d="M20 29 Q26 22 36 21 Q46 22 52 29" stroke="#A8784A" stroke-width="1.5" fill="none" opacity=".6"/>
+    <path d="M14 33 Q20 22 36 20 Q52 22 58 33" stroke="#A8784A" stroke-width="1" fill="none" opacity=".3"/>
+    <path d="M23 33 Q29 26 36 25 Q43 26 49 33" stroke="#986840" stroke-width="1" fill="none" opacity=".4"/>
+    <ellipse cx="27" cy="28" rx="3" ry="1.2" fill="#BA8A5C" opacity=".5" transform="rotate(-20 27 28)"/>
+    <ellipse cx="45" cy="27" rx="2.5" ry="1" fill="#BA8A5C" opacity=".5" transform="rotate(15 45 27)"/>
+    <text x="36" y="60" font-size="10" fill="#6B5030" text-anchor="middle" font-family="inherit" font-weight="600" opacity=".7">قمح</text>
+  </svg>`
+};
+
+// ═══════════════════════════════════════════════════
+//  CONSTANTS & STATE
+// ═══════════════════════════════════════════════════
+const TYPE_KEYS = ['sha3ir_k','sha3ir_s','dra','qmh'];
+const TYPE_META = {
+  sha3ir_k:{ label:'شعير كبير',  short:'ش.ك', bdg:'bdg-a', note:'' },
+  sha3ir_s:{ label:'شعير صغير', short:'ش.ص', bdg:'bdg-a', note:'جوج = كبيرة' },
+  dra:     { label:'ذرة كبير',   short:'ذ.ك', bdg:'bdg-g', note:'' },
+  qmh:     { label:'قمح كبير',  short:'ق.ك', bdg:'bdg-t', note:'' }
+};
+const DEF_PRICES = { sha3ir_k:2.50, sha3ir_s:1.25, dra:2.50, qmh:2.50 };
+const TODAY = new Date().toISOString().split('T')[0];
+
+let S = { points:[], deliveries:[], leftovers:[], drivers:[] };
+let CFG = { googleClientId:'', autoSync:false };
+let CUR = 'home', SEL_PT = null;
+let DF = { ptId:'', items:ei(), time:nowStr(), driver:'', notes:'', leftMode:false, lPtId:'', lItems:ei() };
+let GDRIVE = { token:null, fileId:null, status:'idle' }; // idle | syncing | ok | err
+let deferredInstall = null;
+
+function ei(){ return {sha3ir_k:'',sha3ir_s:'',dra:'',qmh:''} }
+function nowStr(){ const d=new Date(); return pad(d.getHours())+':'+pad(d.getMinutes()) }
+function pad(n){ return String(n).padStart(2,'0') }
+function dl(d){ const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0] }
+function fdate(d){
+  const D=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  const M=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  const dt=new Date(d+'T12:00:00');
+  return D[dt.getDay()]+' '+dt.getDate()+' '+M[dt.getMonth()]+' '+dt.getFullYear();
+}
+
+// ═══════════════════════════════════════════════════
+//  PRICING & CALC
+// ═══════════════════════════════════════════════════
+function getPrices(ptId){
+  const pt=S.points.find(p=>p.id===ptId);
+  return {...DEF_PRICES,...(pt?.prices||{})};
+}
+function calcVal(items,ptId){
+  const pr=getPrices(ptId);
+  return TYPE_KEYS.reduce((s,k)=>s+(parseInt(items[k])||0)*pr[k],0);
+}
+function fmtItems(items){
+  return TYPE_KEYS.filter(k=>parseInt(items[k])>0).map(k=>`${items[k]} ${TYPE_META[k].short}`).join(' · ');
+}
+function hasItems(items){ return TYPE_KEYS.some(k=>parseInt(items[k])>0) }
+function getDelivs(ptId,date){ return S.deliveries.filter(d=>d.ptId===ptId&&d.date===date) }
+function getLeft(ptId,date){ return S.leftovers.find(l=>l.ptId===ptId&&l.date===date)||null }
+function ptNet(ptId,date){
+  const t=getDelivs(ptId,date).reduce((s,d)=>s+calcVal(d.items,ptId),0);
+  const l=getLeft(ptId,date); return t-(l?calcVal(l.items,ptId):0);
+}
+function todayCA(){
+  const t=S.deliveries.filter(d=>d.date===TODAY).reduce((s,d)=>s+calcVal(d.items,d.ptId),0);
+  const l=S.leftovers.filter(l=>l.date===TODAY).reduce((s,l)=>s+calcVal(l.items,l.ptId),0);
+  return t-l;
+}
+function bestTime(ptId){
+  const ds=S.deliveries.filter(d=>d.ptId===ptId); if(ds.length<2)return null;
+  const h={};
+  ds.forEach(d=>{ const hr=d.time.split(':')[0]; h[hr]=(h[hr]||0)+calcVal(d.items,ptId) });
+  const b=Object.entries(h).sort((a,b)=>b[1]-a[1])[0]; return b?b[0]+':00':null;
+}
+function salesByDay(ptId){
+  const days={};
+  S.deliveries.filter(d=>d.ptId===ptId).forEach(d=>{ days[d.date]=(days[d.date]||0)+calcVal(d.items,ptId) });
+  S.leftovers.filter(l=>l.ptId===ptId).forEach(l=>{ if(days[l.date]) days[l.date]-=calcVal(l.items,ptId) });
+  return Object.entries(days).sort((a,b)=>a[0]>b[0]?-1:1).slice(0,10);
+}
+
+// ═══════════════════════════════════════════════════
+//  PERSISTENCE
+// ═══════════════════════════════════════════════════
+function save(){
+  localStorage.setItem('makhbaza_v3', JSON.stringify({points:S.points,deliveries:S.deliveries,leftovers:S.leftovers,drivers:S.drivers}));
+  localStorage.setItem('makhbaza_cfg', JSON.stringify(CFG));
+}
+function loadLocal(){
+  try{ const r=localStorage.getItem('makhbaza_v3'); if(r) Object.assign(S,JSON.parse(r)); }catch(e){}
+  try{ const r=localStorage.getItem('makhbaza_cfg'); if(r) Object.assign(CFG,JSON.parse(r)); }catch(e){}
+}
+function dataForSync(){
+  return JSON.stringify({points:S.points,deliveries:S.deliveries,leftovers:S.leftovers,drivers:S.drivers,_ts:Date.now()});
+}
+function mergeFromSync(raw){
+  try{
+    const d=JSON.parse(raw);
+    // Simple last-write-wins: merge by comparing _ts or just replace if server data is newer
+    S.points=d.points||S.points;
+    S.deliveries=d.deliveries||S.deliveries;
+    S.leftovers=d.leftovers||S.leftovers;
+    S.drivers=d.drivers||S.drivers;
+    save(); render();
+    toast('✓ تمت المزامنة مع Google Drive');
+  }catch(e){ toast('خطأ في قراءة البيانات','e') }
+}
+
+// ═══════════════════════════════════════════════════
+//  GOOGLE DRIVE SYNC
+// ═══════════════════════════════════════════════════
+const DRIVE_FNAME = 'makhbaza_backup.json';
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+
+function loadGoogleScript(cb){
+  if(window.google?.accounts?.oauth2){ cb(); return; }
+  const s=document.createElement('script');
+  s.src='https://accounts.google.com/gsi/client';
+  s.onload=cb; s.onerror=()=>toast('تعذّر تحميل Google API','e');
+  document.head.appendChild(s);
+}
+
+function googleSignIn(){
+  if(!CFG.googleClientId){ toast('أدخل Client ID أولاً في الإعدادات','e'); return; }
+  setSyncStatus('syncing');
+  loadGoogleScript(()=>{
+    google.accounts.oauth2.initTokenClient({
+      client_id: CFG.googleClientId,
+      scope: 'https://www.googleapis.com/auth/drive.appdata',
+      callback(resp){
+        if(resp.error){ setSyncStatus('err'); toast('فشل تسجيل الدخول: '+resp.error,'e'); return; }
+        GDRIVE.token=resp.access_token;
+        syncWithDrive();
+      }
+    }).requestAccessToken();
+  });
+}
+
+async function syncWithDrive(){
+  if(!GDRIVE.token){ googleSignIn(); return; }
+  setSyncStatus('syncing'); renderSettings();
+  try{
+    // 1. Find existing file
+    const searchRes = await fetch(
+      'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27'+DRIVE_FNAME+'%27&fields=files(id)',
+      {headers:{Authorization:'Bearer '+GDRIVE.token}}
+    );
+    const searchData = await searchRes.json();
+    if(searchData.error){ handleDriveError(searchData.error); return; }
+    const files = searchData.files||[];
+
+    if(files.length>0){
+      GDRIVE.fileId=files[0].id;
+      // 2. Download existing
+      const dlRes=await fetch('https://www.googleapis.com/drive/v3/files/'+GDRIVE.fileId+'?alt=media',
+        {headers:{Authorization:'Bearer '+GDRIVE.token}});
+      const remoteRaw=await dlRes.text();
+      let remoteTsOk=false;
+      try{ const rd=JSON.parse(remoteRaw); remoteTsOk=(rd._ts||0)>(JSON.parse(localStorage.getItem('makhbaza_v3')||'{}')._ts||0); }catch(e){}
+      if(remoteTsOk){
+        mergeFromSync(remoteRaw);
+        // then upload local merged version
+        await uploadToDrive(dataForSync());
+      } else {
+        await uploadToDrive(dataForSync());
+        setSyncStatus('ok'); renderSettings();
+        toast('✓ تم رفع البيانات إلى Google Drive');
+      }
+    } else {
+      // 3. Create new file
+      await createDriveFile(dataForSync());
+      setSyncStatus('ok'); renderSettings();
+      toast('✓ تم إنشاء ملف النسخ الاحتياطي');
+    }
+  }catch(e){ setSyncStatus('err'); renderSettings(); toast('خطأ في الاتصال بـ Google Drive','e') }
+}
+
+async function uploadToDrive(content){
+  const boundary='makhbaza_boundary';
+  const meta=JSON.stringify({name:DRIVE_FNAME,parents:['appDataFolder']});
+  const body=`--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${boundary}--`;
+  if(GDRIVE.fileId){
+    return fetch('https://www.googleapis.com/upload/drive/v3/files/'+GDRIVE.fileId+'?uploadType=multipart',{
+      method:'PATCH',
+      headers:{Authorization:'Bearer '+GDRIVE.token,'Content-Type':'multipart/related; boundary='+boundary},
+      body
+    });
+  }
+}
+async function createDriveFile(content){
+  const boundary='makhbaza_boundary';
+  const meta=JSON.stringify({name:DRIVE_FNAME,parents:['appDataFolder']});
+  const body=`--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${boundary}--`;
+  const res=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+    method:'POST',
+    headers:{Authorization:'Bearer '+GDRIVE.token,'Content-Type':'multipart/related; boundary='+boundary},
+    body
+  });
+  const data=await res.json();
+  if(data.id) GDRIVE.fileId=data.id;
+}
+
+function handleDriveError(err){
+  GDRIVE.token=null; setSyncStatus('err'); renderSettings();
+  if(err.code===401){ toast('انتهت جلسة Google. أعد المزامنة.','e') }
+  else{ toast('خطأ Google Drive: '+err.message,'e') }
+}
+
+function setSyncStatus(s){ GDRIVE.status=s }
+function syncStatusHtml(){
+  const s=GDRIVE.status;
+  if(s==='syncing') return `<div class="sync-status sync-pending"><div class="sync-dot sync-dot-pending"></div>جاري المزامنة مع Google Drive...</div>`;
+  if(s==='ok') return `<div class="sync-status sync-ok"><div class="sync-dot sync-dot-ok"></div>تمت المزامنة بنجاح</div>`;
+  if(s==='err') return `<div class="sync-status sync-err"><div class="sync-dot sync-dot-err"></div>فشلت المزامنة — تحقق من الاتصال أو Client ID</div>`;
+  return '';
+}
+
+// ═══════════════════════════════════════════════════
+//  PWA / INSTALL
+// ═══════════════════════════════════════════════════
+function registerSW(){
+  if(!('serviceWorker' in navigator)) return;
+  const swCode = `
+const CACHE='makhbaza-v3';
+const ASSETS=[self.location.pathname];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));self.skipWaiting()});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});
+self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(res&&res.status===200){const c=res.clone();caches.open(CACHE).then(ca=>ca.put(e.request,c))}return res})))});
+`;
+  try{
+    const blob=new Blob([swCode],{type:'application/javascript'});
+    const url=URL.createObjectURL(blob);
+    navigator.serviceWorker.register(url).then(()=>console.log('SW registered')).catch(()=>{});
+  }catch(e){}
+}
+
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredInstall=e; renderHome();
+});
+
+function installApp(){
+  if(!deferredInstall) return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(()=>{ deferredInstall=null; renderHome(); });
+}
+
+function injectManifest(){
+  const manifest={name:'مخبزتي',short_name:'مخبزتي',start_url:window.location.href,display:'standalone',background_color:'#ffffff',theme_color:'#BA7517',orientation:'portrait',icons:[{src:'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="80" fill="%23BA7517"/><text x="256" y="340" font-size="280" text-anchor="middle">🍞</text></svg>',sizes:'512x512',type:'image/svg+xml'}]};
+  const link=document.createElement('link'); link.rel='manifest';
+  link.href='data:application/manifest+json,'+encodeURIComponent(JSON.stringify(manifest));
+  document.head.appendChild(link);
+}
+
+// ═══════════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════════
+function toast(msg,type='s'){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const t=document.createElement('div'); t.className='toast';
+  if(type==='e') t.style.background='#993C1D';
+  t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2400);
+}
+function scrollTop(){ document.getElementById('content').scrollTop=0 }
+
+function go(name){
+  CUR=name; SEL_PT=null;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('scr-'+name).classList.add('on');
+  document.getElementById('n-'+name).classList.add('on');
+  scrollTop(); render();
+}
+
+function render(){
+  document.getElementById('tb-date').textContent=fdate(TODAY);
+  document.getElementById('tb-ca').textContent=todayCA().toFixed(2)+' د.م';
+  renderHome(); renderDeliv(); renderPts(); renderStats(); renderSettings();
+}
+
+// ═══════════════════════════════════════════════════
+//  HOME
+// ═══════════════════════════════════════════════════
+function renderHome(){
+  const tds=S.deliveries.filter(d=>d.date===TODAY);
+  const totCA=tds.reduce((s,d)=>s+calcVal(d.items,d.ptId),0);
+  const lftCA=S.leftovers.filter(l=>l.date===TODAY).reduce((s,l)=>s+calcVal(l.items,l.ptId),0);
+  const netCA=totCA-lftCA;
+  const actPts=[...new Set(tds.map(d=>d.ptId))].length;
+
+  let h='';
+  if(deferredInstall){
+    h+=`<div class="install-banner">
+      <div class="install-banner-icon">📲</div>
+      <div class="install-banner-txt">ثبّت التطبيق على شاشتك الرئيسية للوصول السريع بدون متصفح</div>
+      <button class="install-banner-btn" onclick="installApp()">تثبيت</button>
+    </div>`;
+  }
+  h+=`<div class="mgrid">
+    <div class="met"><div class="met-lbl">رقم المعاملات</div><div class="met-val">${netCA.toFixed(2)}</div><div class="met-sub">درهم صافي</div></div>
+    <div class="met"><div class="met-lbl">إجمالي التوزيع</div><div class="met-val">${totCA.toFixed(2)}</div><div class="met-sub">درهم موزع</div></div>
+    <div class="met"><div class="met-lbl">عمليات المرور</div><div class="met-val">${tds.length}</div><div class="met-sub">${actPts} نقطة مخدومة</div></div>
+    <div class="met"><div class="met-lbl">الفائض المسجل</div><div class="met-val">${lftCA.toFixed(2)}</div><div class="met-sub">درهم فائض</div></div>
+  </div>`;
+  h+=`<div class="slbl">آخر عمليات التسليم</div>`;
+  if(!tds.length){ h+=`<div class="empty"><div class="empty-icon">🚚</div>لم يتم تسجيل أي تسليم اليوم</div>` }
+  else{
+    h+=`<div class="card">`;
+    [...tds].sort((a,b)=>b.time>a.time?1:-1).slice(0,8).forEach(d=>{
+      const pt=S.points.find(p=>p.id===d.ptId);
+      h+=`<div class="ditem"><div class="ddot"></div>
+        <div class="dinfo">
+          <div class="dval">${calcVal(d.items,d.ptId).toFixed(2)} <span style="font-size:12px;font-weight:400;color:var(--tx2)">د.م → ${pt?pt.name:'?'}</span></div>
+          <div class="dmeta">${fmtItems(d.items)}${d.driver?` · <span class="dtag">👤 ${d.driver}</span>`:''}</div>
+        </div>
+        <div class="dtime">${d.time}</div></div>`;
+    });
+    h+=`</div>`;
+  }
+  if(S.points.length){
+    h+=`<div class="slbl">حالة النقاط اليوم</div>`;
+    S.points.forEach(pt=>{
+      const ds=getDelivs(pt.id,TODAY);
+      const totV=ds.reduce((s,d)=>s+calcVal(d.items,pt.id),0);
+      const lft=getLeft(pt.id,TODAY); const lftV=lft?calcVal(lft.items,pt.id):0;
+      h+=`<div class="card" style="cursor:pointer" onclick="viewPt('${pt.id}')"><div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:14px;font-weight:600;color:var(--tx)">${pt.name}</div>
+          <div style="font-size:12px;color:var(--tx2);margin-top:3px">${ds.length} مرور · فائض: ${lftV.toFixed(2)} د.م</div></div>
+        <div style="text-align:left"><div style="font-size:18px;font-weight:700;color:var(--A)">${(totV-lftV).toFixed(2)}</div><div style="font-size:10px;color:var(--tx2)">درهم صافي</div></div>
+      </div></div>`;
+    });
+  }
+  document.getElementById('scr-home').innerHTML=h;
+}
+
+// ═══════════════════════════════════════════════════
+//  DELIVERY
+// ═══════════════════════════════════════════════════
+function renderDeliv(){
+  let h=`<div class="pills">
+    <div class="pill ${!DF.leftMode?'on':''}" onclick="setMode(false)">🚚 تسليم خبز</div>
+    <div class="pill ${DF.leftMode?'on':''}" onclick="setMode(true)">📦 تسجيل فائض</div>
+  </div>`;
+  if(!S.points.length){ h+=`<div class="alrt alrt-w">أضف نقطة بيع أولاً من تبويب النقاط 👆</div>` }
+  else if(!DF.leftMode){ h+=buildDelivForm() }
+  else{ h+=buildLeftoverForm() }
+  document.getElementById('scr-deliv').innerHTML=h;
+}
+
+function buildTypeGrid(items, ptId, prefix){
+  const pr=ptId?getPrices(ptId):DEF_PRICES;
+  let h=`<div class="tgrid">`;
+  TYPE_KEYS.forEach(k=>{
+    const t=TYPE_META[k]; const v=items[k]||'';
+    h+=`<div class="tcard">
+      <div style="display:flex;align-items:center;justify-content:center">${BREAD_SVG[k].replace('width="72"','width="64"').replace('height="72"','height="64"')}</div>
+      <div class="tcard-nm">${t.label}</div>
+      <div class="tcard-pr">${pr[k].toFixed(2)} د.م${t.note?`<br><span style="font-size:10px;color:var(--A)">${t.note}</span>`:''}</div>
+      <input type="number" min="0" step="1" placeholder="0" value="${v}"
+        oninput="${prefix}['${k}']=this.value${prefix==='DF.items'?';updSum()':''}" style="text-align:center">
+    </div>`;
+  });
+  h+=`</div>`;
+  return h;
+}
+
+function buildDelivForm(){
+  const ptId=DF.ptId; const items=DF.items;
+  const total=ptId?calcVal(items,ptId):0; const hasQ=hasItems(items)&&ptId;
+  let h=`<div class="fg"><label class="fl">نقطة البيع</label>
+    <select id="f-pt" onchange="DF.ptId=this.value;renderDeliv()">
+      <option value="">— اختر نقطة —</option>
+      ${S.points.map(p=>`<option value="${p.id}" ${ptId===p.id?'selected':''}>${p.name}</option>`).join('')}
+    </select></div>`;
+  h+=`<div class="slbl">الكميات حسب النوع</div>`;
+  h+=buildTypeGrid(items,ptId,'DF.items');
+  if(hasQ){
+    h+=`<div class="sum-box" id="dsum">`;
+    TYPE_KEYS.forEach(k=>{ const q=parseInt(items[k])||0; if(!q)return;
+      const pr=getPrices(ptId);
+      h+=`<div class="sum-row"><span>${q} × ${TYPE_META[k].label}</span><span>${(q*pr[k]).toFixed(2)} د.م</span></div>`;
+    });
+    h+=`<div class="sum-row sum-total"><span>المجموع</span><span>${total.toFixed(2)} د.م</span></div></div>`;
+  }
+  h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="fg"><label class="fl">الساعة</label><input type="time" id="f-time" value="${DF.time}" oninput="DF.time=this.value"></div>
+    <div class="fg"><label class="fl">المسؤول</label>
+      <input type="text" id="f-drv" list="drvs" value="${DF.driver}" placeholder="الاسم" oninput="DF.driver=this.value">
+      <datalist id="drvs">${S.drivers.map(d=>`<option value="${d}">`).join('')}</datalist>
+    </div></div>`;
+  h+=`<div class="fg"><label class="fl">ملاحظات</label><input type="text" id="f-notes" value="${DF.notes}" placeholder="اختياري" oninput="DF.notes=this.value"></div>`;
+  h+=`<button class="btn btn-p" onclick="submitDeliv()">✓ تسجيل التسليم</button>`;
+  return h;
+}
+
+function updSum(){
+  const keys=TYPE_KEYS;
+  document.querySelectorAll('#scr-deliv .tcard input[type=number]').forEach((inp,i)=>{ if(keys[i]) DF.items[keys[i]]=inp.value });
+  const ptId=document.getElementById('f-pt')?.value||DF.ptId;
+  if(!ptId)return; DF.ptId=ptId;
+  const pr=getPrices(ptId); const items=DF.items;
+  const total=calcVal(items,ptId); const hasQ=hasItems(items);
+  let box=document.getElementById('dsum');
+  if(hasQ){
+    let inner='';
+    TYPE_KEYS.forEach(k=>{ const q=parseInt(items[k])||0; if(!q)return;
+      inner+=`<div class="sum-row"><span>${q} × ${TYPE_META[k].label}</span><span>${(q*pr[k]).toFixed(2)} د.م</span></div>`;
+    });
+    inner+=`<div class="sum-row sum-total"><span>المجموع</span><span>${total.toFixed(2)} د.م</span></div>`;
+    if(!box){ const d2=document.createElement('div'); d2.className='sum-box'; d2.id='dsum'; d2.innerHTML=inner;
+      document.querySelector('#scr-deliv .tgrid')?.after(d2); }
+    else box.innerHTML=inner;
+  } else if(box) box.remove();
+}
+
+function buildLeftoverForm(){
+  const items=DF.lItems; const ptId=DF.lPtId;
+  const total=ptId?calcVal(items,ptId):0; const hasQ=hasItems(items)&&ptId;
+  let h=`<p style="font-size:13px;color:var(--tx2);margin-bottom:14px">سجل الخبز المتبقي في نهاية اليوم لحساب صافي المبيعات.</p>`;
+  h+=`<div class="fg"><label class="fl">نقطة البيع</label>
+    <select onchange="DF.lPtId=this.value;renderDeliv()">
+      <option value="">— اختر نقطة —</option>
+      ${S.points.map(p=>`<option value="${p.id}" ${ptId===p.id?'selected':''}>${p.name}</option>`).join('')}
+    </select></div>`;
+  h+=buildTypeGrid(items,ptId,'DF.lItems');
+  if(hasQ){
+    h+=`<div class="sum-box">`;
+    TYPE_KEYS.forEach(k=>{ const q=parseInt(items[k])||0; if(!q)return;
+      const pr=getPrices(ptId);
+      h+=`<div class="sum-row"><span>${q} × ${TYPE_META[k].label}</span><span>${(q*pr[k]).toFixed(2)} د.م</span></div>`;
+    });
+    h+=`<div class="sum-row sum-total"><span>إجمالي الفائض</span><span>${total.toFixed(2)} د.م</span></div></div>`;
+  }
+  h+=`<button class="btn btn-p" onclick="submitLeft()">✓ تسجيل الفائض</button>`;
+  const todayLefts=S.leftovers.filter(l=>l.date===TODAY);
+  if(todayLefts.length){
+    h+=`<div class="slbl">الفائض المسجل اليوم</div><div class="card">`;
+    todayLefts.forEach(l=>{
+      const pt=S.points.find(p=>p.id===l.ptId);
+      h+=`<div class="ditem"><div class="ddot" style="background:var(--AM)"></div>
+        <div class="dinfo"><div class="dval">${pt?pt.name:'?'}</div><div class="dmeta">${fmtItems(l.items)}</div></div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span class="bdg bdg-a">${calcVal(l.items,l.ptId).toFixed(2)} د.م</span>
+          <button class="icon-btn" onclick="delLeft('${l.ptId}','${l.date}')">✕</button>
+        </div></div>`;
+    });
+    h+=`</div>`;
+  }
+  return h;
+}
+
+function setMode(b){ DF.leftMode=b; renderDeliv() }
+
+function submitDeliv(){
+  const ptId=document.getElementById('f-pt')?.value||DF.ptId;
+  const time=document.getElementById('f-time')?.value||DF.time;
+  const driver=(document.getElementById('f-drv')?.value||DF.driver).trim();
+  const notes=(document.getElementById('f-notes')?.value||DF.notes).trim();
+  const keys=TYPE_KEYS; const inps=document.querySelectorAll('#scr-deliv .tcard input[type=number]');
+  const items=ei(); inps.forEach((inp,i)=>{ if(keys[i]) items[keys[i]]=inp.value||'0' });
+  if(!ptId){ toast('اختر نقطة بيع','e'); return }
+  if(!hasItems(items)){ toast('أدخل كمية خبز','e'); return }
+  S.deliveries.push({id:Date.now()+'',ptId,date:TODAY,time:time||nowStr(),items,driver,notes});
+  if(driver&&!S.drivers.includes(driver)) S.drivers.push(driver);
+  DF={...DF,items:ei(),notes:''};
+  save(); autoSync(); toast(`✓ تم تسجيل ${calcVal(items,ptId).toFixed(2)} د.م`); render();
+}
+
+function submitLeft(){
+  const ptId=document.querySelector('#scr-deliv select')?.value||DF.lPtId;
+  const keys=TYPE_KEYS; const inps=document.querySelectorAll('#scr-deliv .tcard input[type=number]');
+  const items=ei(); inps.forEach((inp,i)=>{ if(keys[i]) items[keys[i]]=inp.value||'0' });
+  if(!ptId){ toast('اختر نقطة بيع','e'); return }
+  S.leftovers=S.leftovers.filter(l=>!(l.ptId===ptId&&l.date===TODAY));
+  S.leftovers.push({ptId,date:TODAY,items});
+  DF={...DF,lItems:ei()};
+  save(); autoSync(); toast('✓ تم تسجيل الفائض'); render();
+}
+function delLeft(ptId,date){ S.leftovers=S.leftovers.filter(l=>!(l.ptId===ptId&&l.date===date)); save(); autoSync(); render() }
+
+// ═══════════════════════════════════════════════════
+//  POINTS
+// ═══════════════════════════════════════════════════
+function renderPts(){
+  if(SEL_PT){ renderPtDetail(); return }
+  let h=`<div class="slbl">إضافة نقطة جديدة</div>
+    <div class="card-flat">
+      <div class="fg"><label class="fl">اسم نقطة البيع</label>
+        <input type="text" id="np-n" placeholder="مثال: دكان سيدي عثمان"></div>
+      <div class="fg" style="margin-bottom:8px"><label class="fl">الموقع / العنوان</label>
+        <input type="text" id="np-a" placeholder="اختياري"></div>
+      <button class="btn btn-p" onclick="addPt()">+ إضافة النقطة</button>
+    </div>
+    <div class="slbl">نقاط البيع (${S.points.length})</div>`;
+  if(!S.points.length){ h+=`<div class="empty"><div class="empty-icon">📍</div>لم تضف أي نقطة بعد</div>` }
+  else{
+    h+=`<div class="card">`;
+    S.points.forEach(pt=>{
+      const ds=getDelivs(pt.id,TODAY);
+      const net=ptNet(pt.id,TODAY);
+      h+=`<div class="pitem" onclick="viewPt('${pt.id}')">
+        <div class="pav">${pt.name.trim()[0]||'?'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;color:var(--tx)">${pt.name}</div>
+          <div style="font-size:12px;color:var(--tx2);margin-top:2px">${pt.address||'بدون عنوان'} · ${ds.length} مرور</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="text-align:left"><div style="font-size:16px;font-weight:700;color:var(--A)">${net.toFixed(2)}</div><div style="font-size:10px;color:var(--tx2)">د.م صافي</div></div>
+          <button class="icon-btn" onclick="event.stopPropagation();delPt('${pt.id}')">✕</button>
+        </div></div>`;
+    });
+    h+=`</div>`;
+  }
+  document.getElementById('scr-pts').innerHTML=h;
+}
+
+function addPt(){
+  const n=document.getElementById('np-n')?.value.trim();
+  const a=document.getElementById('np-a')?.value.trim();
+  if(!n){ toast('أدخل اسم النقطة','e'); return }
+  S.points.push({id:Date.now()+'',name:n,address:a||'',prices:{...DEF_PRICES}});
+  save(); autoSync(); toast('✓ تمت إضافة النقطة'); render();
+}
+function delPt(id){
+  if(!confirm('تأكيد حذف هذه النقطة وجميع بياناتها؟')) return;
+  S.points=S.points.filter(p=>p.id!==id);
+  S.deliveries=S.deliveries.filter(d=>d.ptId!==id);
+  S.leftovers=S.leftovers.filter(l=>l.ptId!==id);
+  save(); autoSync(); render();
+}
+function viewPt(id){
+  SEL_PT=id;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('scr-pts').classList.add('on');
+  document.getElementById('n-pts').classList.add('on');
+  CUR='pts'; scrollTop(); renderPtDetail();
+}
+
+function renderPtDetail(){
+  const pt=S.points.find(p=>p.id===SEL_PT); if(!pt){ SEL_PT=null; renderPts(); return }
+  const pr=getPrices(pt.id);
+  const ds=getDelivs(pt.id,TODAY);
+  const totV=ds.reduce((s,d)=>s+calcVal(d.items,pt.id),0);
+  const lft=getLeft(pt.id,TODAY); const lftV=lft?calcVal(lft.items,pt.id):0;
+  const net=totV-lftV;
+  const bt=bestTime(pt.id);
+  const sbd=salesByDay(pt.id);
+  const mx=Math.max(...sbd.map(s=>s[1]),1);
+  const typeBreak=ei();
+  ds.forEach(d=>TYPE_KEYS.forEach(k=>{ typeBreak[k]=String((parseInt(typeBreak[k])||0)+(parseInt(d.items[k])||0)) }));
+
+  let h=`<button class="back-btn" onclick="SEL_PT=null;renderPts()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    العودة للنقاط
+  </button>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+    <div><div style="font-size:19px;font-weight:700">${pt.name}</div>
+      <div style="font-size:13px;color:var(--tx2);margin-top:3px">${pt.address||'بدون عنوان'}</div></div>
+    <button class="btn btn-s btn-sm" onclick="openPriceModal('${pt.id}')">⚙️ الأسعار</button>
+  </div>
+  <div class="mgrid">
+    <div class="met"><div class="met-lbl">موزع اليوم</div><div class="met-val">${totV.toFixed(2)}</div><div class="met-sub">درهم</div></div>
+    <div class="met"><div class="met-lbl">صافي مبيعات</div><div class="met-val">${net.toFixed(2)}</div><div class="met-sub">درهم</div></div>
+  </div>`;
+
+  // Prices summary
+  h+=`<div class="slbl">أسعار هذه النقطة</div><div class="card-flat" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">`;
+  TYPE_KEYS.forEach(k=>{
+    h+=`<div style="display:flex;align-items:center;gap:8px">
+      <div>${BREAD_SVG[k].replace('width="72"','width="40"').replace('height="72"','height="40"')}</div>
+      <div><div style="font-size:12px;font-weight:600;color:var(--tx)">${TYPE_META[k].short}</div>
+           <div style="font-size:14px;font-weight:700;color:var(--A)">${pr[k].toFixed(2)} د.م</div></div>
+    </div>`;
+  });
+  h+=`</div>`;
+
+  if(TYPE_KEYS.some(k=>parseInt(typeBreak[k])>0)){
+    h+=`<div class="slbl">تفصيل أنواع الخبز اليوم</div><div class="card">`;
+    TYPE_KEYS.forEach(k=>{ const q=parseInt(typeBreak[k])||0; if(!q)return;
+      h+=`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--br)">
+        <div>${BREAD_SVG[k].replace('width="72"','width="36"').replace('height="72"','height="36"')}</div>
+        <span style="flex:1;font-size:13px;font-weight:500">${TYPE_META[k].label}</span>
+        <span style="font-size:13px">${q} خبزة = <strong style="color:var(--A)">${(q*pr[k]).toFixed(2)} د.م</strong></span>
+      </div>`;
+    });
+    h+=`</div>`;
+  }
+
+  if(bt){ h+=`<div class="best-time"><div><div style="font-size:13px;font-weight:600;color:var(--AD)">⏰ أنسب وقت للتوزيع</div><div style="font-size:11px;color:var(--A);margin-top:2px">بناءً على سجل المبيعات</div></div><div style="font-size:20px;font-weight:700;color:var(--AX)">${bt}</div></div>` }
+
+  if(sbd.length){
+    h+=`<div class="slbl">المبيعات آخر ${sbd.length} أيام</div><div class="card">`;
+    sbd.forEach(([date,val])=>{
+      h+=`<div class="bbar"><div class="bbar-head"><span>${dl(date)}</span><span>${val.toFixed(2)} د.م</span></div>
+        <div class="btrack"><div class="bfill" style="width:${Math.round(val/mx*100)}%"></div></div></div>`;
+    });
+    h+=`</div>`;
+  }
+
+  h+=`<div class="slbl">تسليمات اليوم (${ds.length})</div>`;
+  if(!ds.length){ h+=`<div class="empty">لا تسليمات اليوم لهذه النقطة</div>` }
+  else{
+    h+=`<div class="card">`;
+    [...ds].sort((a,b)=>a.time>b.time?1:-1).forEach(d=>{
+      h+=`<div class="ditem"><div class="ddot"></div>
+        <div class="dinfo">
+          <div class="dval">${calcVal(d.items,pt.id).toFixed(2)} د.م</div>
+          <div class="dmeta">${fmtItems(d.items)}${d.driver?` · <span class="dtag">👤 ${d.driver}</span>`:''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <div class="dtime">${d.time}</div>
+          <button class="icon-btn" onclick="delDelivery('${d.id}')">✕</button>
+        </div></div>`;
+    });
+    h+=`</div>`;
+  }
+  document.getElementById('scr-pts').innerHTML=h;
+}
+function delDelivery(id){ S.deliveries=S.deliveries.filter(d=>d.id!==id); save(); autoSync(); renderPtDetail() }
+
+// ═══════════════════════════════════════════════════
+//  PRICE MODAL
+// ═══════════════════════════════════════════════════
+function openPriceModal(ptId){
+  const pt=S.points.find(p=>p.id===ptId); if(!pt)return;
+  const pr=getPrices(ptId);
+  const ov=document.createElement('div'); ov.className='modal-overlay'; ov.id='pm'; ov.onclick=closeModal;
+  ov.innerHTML=`<div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ أسعار — ${pt.name}</div>
+    <p style="font-size:13px;color:var(--tx2);margin-bottom:16px">خصص ثمن التوزيع لكل نوع خبز لهذه النقطة بالدرهم.</p>
+    ${TYPE_KEYS.map(k=>`
+      <div class="fg" style="display:flex;align-items:center;gap:10px">
+        <div style="flex-shrink:0">${BREAD_SVG[k].replace('width="72"','width="48"').replace('height="72"','height="48"')}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600;color:var(--tx)">${TYPE_META[k].label}</div>
+          ${TYPE_META[k].note?`<div style="font-size:11px;color:var(--tx2)">${TYPE_META[k].note}</div>`:''}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input type="number" id="pr-${k}" min="0" step="0.25" value="${pr[k]}" style="width:85px">
+          <span style="font-size:13px;color:var(--tx2);white-space:nowrap">د.م</span>
+        </div>
+      </div>`).join('')}
+    <button class="btn btn-p" style="margin-top:6px" onclick="savePrices('${ptId}')">✓ حفظ الأسعار</button>
+    <button class="btn btn-s" style="margin-top:8px" onclick="resetPrices('${ptId}')">↩ الأسعار الافتراضية</button>
+    <button class="btn btn-d" style="margin-top:8px" onclick="closeModal()">إلغاء</button>
+  </div>`;
+  document.body.appendChild(ov);
+}
+function savePrices(ptId){
+  const pt=S.points.find(p=>p.id===ptId); if(!pt)return;
+  const prices={};
+  TYPE_KEYS.forEach(k=>{ const v=parseFloat(document.getElementById('pr-'+k)?.value); prices[k]=isNaN(v)?DEF_PRICES[k]:Math.max(0,v) });
+  pt.prices=prices; save(); autoSync(); closeModal(); toast('✓ تم حفظ الأسعار'); render();
+}
+function resetPrices(ptId){
+  const pt=S.points.find(p=>p.id===ptId); if(!pt)return;
+  pt.prices={...DEF_PRICES}; save(); closeModal(); toast('↩ تم إعادة الأسعار الافتراضية'); render();
+}
+function closeModal(){ document.getElementById('pm')?.remove() }
+
+// ═══════════════════════════════════════════════════
+//  STATS
+// ═══════════════════════════════════════════════════
+function renderStats(){
+  if(!S.points.length){ document.getElementById('scr-stats').innerHTML=`<div class="empty"><div class="empty-icon">📊</div>أضف نقاط بيع وسجل توزيعات</div>`; return }
+  const allDates=[...new Set(S.deliveries.map(d=>d.date))].sort().reverse().slice(0,10);
+  const byPt=S.points.map(pt=>{
+    const tot=S.deliveries.filter(d=>d.ptId===pt.id).reduce((s,d)=>s+calcVal(d.items,pt.id),0);
+    const lft=S.leftovers.filter(l=>l.ptId===pt.id).reduce((s,l)=>s+calcVal(l.items,pt.id),0);
+    return{pt,net:tot-lft,tot};
+  }).sort((a,b)=>b.net-a.net);
+  const mx=Math.max(...byPt.map(x=>x.net),1);
+  const typeTot={}; const lftTot={};
+  TYPE_KEYS.forEach(k=>{ typeTot[k]=0; lftTot[k]=0 });
+  S.deliveries.forEach(d=>TYPE_KEYS.forEach(k=>{ typeTot[k]+=(parseInt(d.items[k])||0) }));
+  S.leftovers.forEach(l=>TYPE_KEYS.forEach(k=>{ lftTot[k]+=(parseInt(l.items[k])||0) }));
+
+  let h=`<div class="slbl">إجمالي حسب نوع الخبز</div><div class="card">`;
+  TYPE_KEYS.forEach(k=>{
+    const net=typeTot[k]-lftTot[k];
+    h+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--br)">
+      <div style="flex-shrink:0">${BREAD_SVG[k].replace('width="72"','width="44"').replace('height="72"','height="44"')}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--tx)">${TYPE_META[k].label}</div>
+        <div style="font-size:12px;color:var(--tx2);margin-top:2px">موزع ${typeTot[k]} · فائض ${lftTot[k]}</div>
+      </div>
+      <div style="text-align:left"><div style="font-size:16px;font-weight:700;color:var(--A)">${net}</div><div style="font-size:10px;color:var(--tx2)">صافي</div></div>
+    </div>`;
+  });
+  h+=`</div>`;
+
+  h+=`<div class="slbl">ترتيب نقاط البيع</div><div class="card">`;
+  byPt.forEach(({pt,net,tot})=>{
+    const bt=bestTime(pt.id);
+    h+=`<div style="margin-bottom:13px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+        <span style="font-weight:600;cursor:pointer;color:var(--A)" onclick="viewPt('${pt.id}')">${pt.name}</span>
+        <span>${net.toFixed(2)} <span style="color:var(--tx2)">/ ${tot.toFixed(2)} د.م</span></span>
+      </div>
+      <div class="btrack"><div class="bfill" style="width:${Math.round(net/mx*100)}%"></div></div>
+      ${bt?`<div style="font-size:11px;color:var(--A);margin-top:3px">⏰ أنسب وقت: ${bt}</div>`:''}
+    </div>`;
+  });
+  h+=`</div>`;
+
+  const drvStats={};
+  S.deliveries.forEach(d=>{ if(d.driver) drvStats[d.driver]=(drvStats[d.driver]||0)+calcVal(d.items,d.ptId) });
+  const drvArr=Object.entries(drvStats).sort((a,b)=>b[1]-a[1]);
+  if(drvArr.length){
+    h+=`<div class="slbl">أداء المسؤولين</div><div class="card">`;
+    const mxD=Math.max(...drvArr.map(x=>x[1]),1);
+    drvArr.forEach(([name,val])=>{
+      const trips=S.deliveries.filter(d=>d.driver===name).length;
+      h+=`<div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+          <span style="font-weight:600">👤 ${name}</span>
+          <span>${val.toFixed(2)} د.م · ${trips} رحلة</span>
+        </div>
+        <div class="btrack"><div class="bfill bfill-t" style="width:${Math.round(val/mxD*100)}%"></div></div>
+      </div>`;
+    });
+    h+=`</div>`;
+  }
+
+  if(allDates.length){
+    h+=`<div class="slbl">تطور المبيعات اليومية</div><div class="card">`;
+    allDates.forEach(date=>{
+      const tot=S.deliveries.filter(d=>d.date===date).reduce((s,d)=>s+calcVal(d.items,d.ptId),0);
+      const lft=S.leftovers.filter(l=>l.date===date).reduce((s,l)=>s+calcVal(l.items,l.ptId),0);
+      h+=`<div class="hrow"><span>${dl(date)}</span><span style="font-weight:600;color:var(--A)">${(tot-lft).toFixed(2)} <span style="font-size:11px;font-weight:400;color:var(--tx2)">د.م صافي</span></span></div>`;
+    });
+    h+=`</div>`;
+  }
+  document.getElementById('scr-stats').innerHTML=h;
+}
+
+// ═══════════════════════════════════════════════════
+//  SETTINGS
+// ═══════════════════════════════════════════════════
+function renderSettings(){
+  const connected=!!GDRIVE.token;
+  let h=`<div class="slbl">المزامنة مع Google Drive</div>
+    ${syncStatusHtml()}
+    <div class="card">
+      <div class="fg"><label class="fl">Google Client ID</label>
+        <input type="text" id="gcid" value="${CFG.googleClientId}" placeholder="xxxx.apps.googleusercontent.com"
+          oninput="CFG.googleClientId=this.value;save()">
+        <div style="font-size:11px;color:var(--tx2);margin-top:5px">احصل عليه من Google Cloud Console ← APIs ← Credentials</div>
+      </div>
+      <div class="srow">
+        <div><div class="srow-lbl">مزامنة تلقائية عند كل تغيير</div>
+          <div class="srow-sub">يحتاج الاتصال بالانترنت</div></div>
+        <button class="switch ${CFG.autoSync?'on':''}" onclick="toggleAutoSync()"></button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+        <button class="btn ${connected?'btn-s':'btn-g'}" onclick="googleSignIn()">
+          ${connected?'🔄 مزامنة الآن':'🔗 ربط Google'}
+        </button>
+        ${connected?`<button class="btn btn-d" onclick="disconnectGoogle()">قطع الربط</button>`:'<div></div>'}
+      </div>
+    </div>`;
+
+  h+=`<div class="slbl">تثبيت التطبيق</div><div class="card">
+    <p style="font-size:13px;color:var(--tx2);margin-bottom:14px;line-height:1.6">لتثبيت التطبيق كتطبيق Android مستقل:</p>
+    <div style="font-size:13px;color:var(--tx);line-height:2">
+      <div>١. افتح الملف عبر <strong>Chrome</strong> على الهاتف</div>
+      <div>٢. اضغط <strong>⋮</strong> ← <strong>"إضافة إلى الشاشة الرئيسية"</strong></div>
+      <div>٣. أو استضفه على <strong>GitHub Pages</strong> ليصبح PWA كامل مع تثبيت أوتوماتيكي</div>
+    </div>
+    ${deferredInstall?`<button class="btn btn-p" style="margin-top:14px" onclick="installApp()">📲 تثبيت الآن</button>`:''}
+  </div>`;
+
+  h+=`<div class="slbl">النسخ الاحتياطي اليدوي</div><div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="btn btn-s" onclick="exportData()">📤 تصدير JSON</button>
+      <button class="btn btn-s" onclick="document.getElementById('imp-file').click()">📥 استيراد</button>
+    </div>
+    <input type="file" id="imp-file" accept=".json" style="display:none" onchange="importData(this)">
+  </div>`;
+
+  h+=`<div class="slbl">البيانات</div><div class="card">
+    <div class="srow">
+      <div><div class="srow-lbl">نقاط البيع</div></div>
+      <span class="bdg bdg-a">${S.points.length}</span>
+    </div>
+    <div class="srow">
+      <div><div class="srow-lbl">إجمالي التسليمات</div></div>
+      <span class="bdg bdg-t">${S.deliveries.length}</span>
+    </div>
+    <div class="srow">
+      <div><div class="srow-lbl">سجلات الفائض</div></div>
+      <span class="bdg bdg-g">${S.leftovers.length}</span>
+    </div>
+    <button class="btn btn-d" style="margin-top:14px" onclick="clearData()">🗑️ حذف جميع البيانات</button>
+  </div>
+
+  <div style="text-align:center;padding:20px 0 10px;font-size:11px;color:var(--tx3)">مخبزتي v3 · يعمل بدون اتصال</div>`;
+
+  document.getElementById('scr-settings').innerHTML=h;
+}
+
+function toggleAutoSync(){ CFG.autoSync=!CFG.autoSync; save(); renderSettings() }
+function autoSync(){ if(CFG.autoSync && GDRIVE.token) syncWithDrive() }
+function disconnectGoogle(){ GDRIVE.token=null; GDRIVE.fileId=null; setSyncStatus('idle'); renderSettings(); toast('تم قطع ربط Google') }
+
+function exportData(){
+  const data=dataForSync();
+  const a=document.createElement('a');
+  a.href='data:application/json,'+encodeURIComponent(data);
+  a.download='makhbaza_backup_'+TODAY+'.json';
+  a.click(); toast('✓ تم تصدير البيانات');
+}
+function importData(inp){
+  const file=inp.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{ try{ mergeFromSync(e.target.result); } catch(err){ toast('خطأ في قراءة الملف','e') } };
+  reader.readAsText(file); inp.value='';
+}
+function clearData(){
+  if(!confirm('تأكيد حذف جميع البيانات؟ لا يمكن التراجع!')) return;
+  S={points:[],deliveries:[],leftovers:[],drivers:[]};
+  save(); toast('تم مسح جميع البيانات'); render();
+}
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+injectManifest();
+registerSW();
+loadLocal();
+if(!DF.time) DF.time=nowStr();
+render();
+</script>
+</body>
+</html>
