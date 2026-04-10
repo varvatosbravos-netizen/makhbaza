@@ -479,15 +479,28 @@ function injectManifest(){
 //  THEME
 // ═══════════════════════════════════════════════
 function setTheme(t){
-  CFG.theme=t;
-  if(t==='auto'){document.documentElement.removeAttribute('data-theme');}
-  else{document.documentElement.setAttribute('data-theme',t);}
-  save();renderSettings();
-}
-function applyTheme(){
-  if(CFG.theme&&CFG.theme!=='auto')document.documentElement.setAttribute('data-theme',CFG.theme);
+  CFG.theme = t;
+  applyTheme(); // تطبيق مباشر
+  save();
+  renderSettings();
 }
 
+function applyTheme(){
+  if (!CFG.theme || CFG.theme === 'auto') {
+    // حذف الثيم باش CSS ديال auto يخدم
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', CFG.theme);
+  }
+}
+
+// (اختياري ولكن مهم) يتبع تغيير النظام مباشرة
+window.matchMedia('(prefers-color-scheme: dark)')
+  .addEventListener('change', () => {
+    if (CFG.theme === 'auto') {
+      applyTheme();
+    }
+  });
 // ═══════════════════════════════════════════════
 //  UI HELPERS
 // ═══════════════════════════════════════════════
