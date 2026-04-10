@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="مخبزتي">
 <title>مخبزتي</title>
+<script src="https://accounts.google.com/gsi/client" async defer onload="initGoogleAuth()"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -257,12 +258,13 @@ const TODAY = new Date().toISOString().split('T')[0];
 // ═══════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════
-let S = {points:[], deliveries:[], leftovers:[], drivers:[], settlements:[]};
+let S = {points:[], deliveries:[], leftovers:[], drivers:[], settlements:[], _ts:0};
 let CFG = {googleClientId:'', autoSync:false, theme:'auto'};
 let CUR='home', SEL_PT=null;
 let DF = {ptId:'', items:ei(), time:nstr(), driver:'', notes:'', leftMode:false, lPtId:'', lItems:ei()};
 let GD = {token:null, fileId:null, status:'idle'};
 let deferredInstall=null;
+let tokenClient = null;
 
 function ei(){return {sha3ir_k:'',sha3ir_s:'',dra:'',qmh:''}}
 function nstr(){const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())}
@@ -313,7 +315,6 @@ function lastSettleDate(ptId){
   return all.length>0 ? all[0].dateTo : null;
 }
 function ptDebt(ptId){
-  // total delivered value - total settled paid amount
   const totalDelivered = S.deliveries.filter(d=>d.ptId===ptId).reduce((s,d)=>s+cval(d.items,ptId),0);
   const totalLeftover  = S.leftovers.filter(l=>l.ptId===ptId).reduce((s,l)=>s+cval(l.items,ptId),0);
   const totalNet = totalDelivered - totalLeftover;
@@ -321,7 +322,6 @@ function ptDebt(ptId){
   return Math.max(0, totalNet - totalPaid);
 }
 function calcSettlement(ptId){
-  // period: from day after last settlement (or first delivery) to today
   const lastSt = lastSettleDate(ptId);
   const allDelivDates = S.deliveries.filter(d=>d.ptId===ptId).map(d=>d.date).sort();
   if(!allDelivDates.length) return null;
@@ -335,7 +335,6 @@ function calcSettlement(ptId){
   const delivsInPeriod = S.deliveries.filter(d=>d.ptId===ptId && d.date>=periodStart && d.date<=periodEnd);
   const leftsInPeriod  = S.leftovers.filter(l=>l.ptId===ptId && l.date>=periodStart && l.date<=periodEnd);
 
-  // Quantities per type
   const delivered={}, leftover={};
   TK.forEach(k=>{delivered[k]=0;leftover[k]=0});
   delivsInPeriod.forEach(d=>TK.forEach(k=>{delivered[k]+=(parseInt(d.items[k])||0)}));
@@ -345,7 +344,6 @@ function calcSettlement(ptId){
   const totalLeftover  = cval(leftover, ptId);
   const totalNet       = totalDelivered - totalLeftover;
 
-  // bread counts
   const totalDelivCount = TK.reduce((s,k)=>s+delivered[k],0);
   const totalLeftCount  = TK.reduce((s,k)=>s+leftover[k],0);
   const totalNetCount   = totalDelivCount - totalLeftCount;
@@ -355,7 +353,7 @@ function calcSettlement(ptId){
     delivered, leftover,
     totalDelivered, totalLeftover, totalNet,
     totalDelivCount, totalLeftCount, totalNetCount,
-    existingDebt: ptDebt(ptId) - totalNet // prev periods debt only
+    existingDebt: ptDebt(ptId) - totalNet
   };
 }
 
@@ -363,52 +361,72 @@ function calcSettlement(ptId){
 //  PERSISTENCE
 // ═══════════════════════════════════════════════
 function save(){
-  localStorage.setItem('makhbaza_v4',JSON.stringify({
-    points:S.points,deliveries:S.deliveries,
-    leftovers:S.leftovers,drivers:S.drivers,settlements:S.settlements
-  }));
+  S._ts = Date.now(); // Mise à jour de l'horodatage de modification
+  localStorage.setItem('makhbaza_v4',JSON.stringify(S));
   localStorage.setItem('makhbaza_cfg',JSON.stringify(CFG));
 }
 function loadLocal(){
-  try{const r=localStorage.getItem('makhbaza_v4');if(r){const d=JSON.parse(r);Object.assign(S,d);if(!S.settlements)S.settlements=[];}}catch(e){}
-  try{const r=localStorage.getItem('makhbaza_cfg');if(r)Object.assign(CFG,JSON.parse(r));}catch(e){}
+  try{
+    const r=localStorage.getItem('makhbaza_v4');
+    if(r){
+      const d=JSON.parse(r);
+      Object.assign(S,d);
+      if(!S.settlements) S.settlements=[];
+    }
+  }catch(e){}
+  try{
+    const r=localStorage.getItem('makhbaza_cfg');
+    if(r) Object.assign(CFG,JSON.parse(r));
+  }catch(e){}
 }
 function dataForSync(){
-  return JSON.stringify({points:S.points,deliveries:S.deliveries,
-    leftovers:S.leftovers,drivers:S.drivers,settlements:S.settlements,_ts:Date.now()});
+  return localStorage.getItem('makhbaza_v4') || JSON.stringify(S);
 }
 function mergeFromSync(raw){
   try{
     const d=JSON.parse(raw);
-    S.points=d.points||S.points; S.deliveries=d.deliveries||S.deliveries;
-    S.leftovers=d.leftovers||S.leftovers; S.drivers=d.drivers||S.drivers;
+    S.points=d.points||S.points; 
+    S.deliveries=d.deliveries||S.deliveries;
+    S.leftovers=d.leftovers||S.leftovers; 
+    S.drivers=d.drivers||S.drivers;
     S.settlements=d.settlements||S.settlements||[];
-    save(); render(); toast('✓ تمت المزامنة مع Google Drive');
+    S._ts=d._ts||Date.now();
+    
+    // Sauvegarde en conservant le _ts du cloud
+    localStorage.setItem('makhbaza_v4', raw);
+    render(); 
   }catch(e){toast('خطأ في قراءة البيانات','e')}
 }
 
 // ═══════════════════════════════════════════════
 //  GOOGLE DRIVE
 // ═══════════════════════════════════════════════
-function loadGS(cb){
-  if(window.google?.accounts?.oauth2){cb();return;}
-  const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';
-  s.onload=cb;s.onerror=()=>toast('تعذّر تحميل Google API','e');document.head.appendChild(s);
+function initGoogleAuth() {
+  if (CFG.googleClientId) {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CFG.googleClientId,
+      scope: 'https://www.googleapis.com/auth/drive.appdata',
+      callback: (resp) => {
+        if (resp.error) { setSync('err'); toast('فشل تسجيل الدخول: '+resp.error, 'e'); renderSettings(); return; }
+        GD.token = resp.access_token;
+        syncDrive();
+      }
+    });
+  }
 }
+
 function googleSignIn(){
   if(!CFG.googleClientId){toast('أدخل Client ID أولاً','e');return;}
-  setSync('syncing');
-  loadGS(()=>{
-    google.accounts.oauth2.initTokenClient({
-      client_id:CFG.googleClientId,
-      scope:'https://www.googleapis.com/auth/drive.appdata',
-      callback(resp){
-        if(resp.error){setSync('err');toast('فشل تسجيل الدخول: '+resp.error,'e');return;}
-        GD.token=resp.access_token; syncDrive();
-      }
-    }).requestAccessToken();
-  });
+  if(!tokenClient) initGoogleAuth();
+  
+  if(tokenClient) {
+    setSync('syncing'); renderSettings();
+    tokenClient.requestAccessToken(); // Appel synchrone pour éviter le blocage des pop-ups
+  } else {
+    toast('جاري تحميل خدمات جوجل، انتظر لحظة','w');
+  }
 }
+
 async function syncDrive(){
   if(!GD.token){googleSignIn();return;}
   setSync('syncing');renderSettings();
@@ -417,18 +435,36 @@ async function syncDrive(){
       {headers:{Authorization:'Bearer '+GD.token}});
     const sd=await sr.json();
     if(sd.error){handleDE(sd.error);return;}
+    
     if(sd.files?.length>0){
       GD.fileId=sd.files[0].id;
       const dr=await fetch('https://www.googleapis.com/drive/v3/files/'+GD.fileId+'?alt=media',
         {headers:{Authorization:'Bearer '+GD.token}});
-      const rr=await dr.text();
-      let newer=false;
-      try{const rd=JSON.parse(rr);const ld=JSON.parse(localStorage.getItem('makhbaza_v4')||'{}');newer=(rd._ts||0)>(ld._ts||0);}catch(e){}
-      if(newer){mergeFromSync(rr);await uploadD(dataForSync());}
-      else{await uploadD(dataForSync());setSync('ok');renderSettings();toast('✓ تم رفع البيانات');}
-    }else{await createD(dataForSync());setSync('ok');renderSettings();toast('✓ تم إنشاء ملف النسخ الاحتياطي');}
+      const cloudText=await dr.text();
+      
+      let cloudData={};
+      try{ cloudData = JSON.parse(cloudText); }catch(e){}
+      
+      const cloudTs = cloudData._ts || 0;
+      const localTs = S._ts || 0;
+      
+      if(cloudTs > localTs){
+        mergeFromSync(cloudText);
+        setSync('ok');renderSettings();toast('📥 تم جلب البيانات من Drive');
+      } else if(localTs > cloudTs){
+        await uploadD(dataForSync());
+        setSync('ok');renderSettings();toast('📤 تم رفع التحديثات إلى Drive');
+      } else {
+        setSync('ok');renderSettings();toast('✅ البيانات متزامنة');
+      }
+    }else{
+      save(); // Forcer la création du timestamp local avant l'envoi
+      await createD(dataForSync());
+      setSync('ok');renderSettings();toast('✓ تم إنشاء ملف النسخ الاحتياطي');
+    }
   }catch(e){setSync('err');renderSettings();toast('خطأ في الاتصال','e')}
 }
+
 async function uploadD(content){
   const b='mb_b',meta=JSON.stringify({name:'makhbaza_backup.json',parents:['appDataFolder']});
   const body=`--${b}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${b}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${b}--`;
@@ -522,7 +558,6 @@ function renderHome(){
   const lftCA=S.leftovers.filter(l=>l.date===TODAY).reduce((s,l)=>s+cval(l.items,l.ptId),0);
   const netCA=totCA-lftCA;
   const actPts=[...new Set(tds.map(d=>d.ptId))].length;
-  // total debt across all points
   const totalDebt=S.points.reduce((s,pt)=>s+ptDebt(pt.id),0);
 
   let h='';
@@ -780,7 +815,6 @@ function renderPtDetail(){
     <div class="met"><div class="met-lbl">صافي اليوم</div><div class="met-val">${net.toFixed(2)}</div><div class="met-sub">درهم</div></div>
   </div>`;
 
-  // ── DEBT BANNER ──
   h+=`<div class="debt-banner ${debt>0?'has-debt':'no-debt'}">
     <div>
       <div style="font-size:13px;font-weight:700;color:${debt>0?'#993C1D':'var(--TD)'}">
@@ -793,7 +827,6 @@ function renderPtDetail(){
     </div>
   </div>`;
 
-  // ── SETTLEMENT BUTTON ──
   if(stl && stl.totalNet>0){
     h+=`<button class="btn btn-teal" style="margin-bottom:14px" onclick="openSettleModal('${pt.id}')">
       💵 التخليص — ${stl.totalNet.toFixed(2)} د.م مستحق
@@ -802,7 +835,6 @@ function renderPtDetail(){
     h+=`<div class="alrt alrt-s" style="margin-bottom:14px">✅ لا توجد مبيعات غير مخلّصة في هذه الفترة</div>`;
   }
 
-  // ── PRICES ──
   h+=`<div class="slbl">أسعار هذه النقطة</div>
     <div class="card-flat" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">`;
   TK.forEach(k=>{
@@ -814,7 +846,6 @@ function renderPtDetail(){
   });
   h+=`</div>`;
 
-  // ── TYPE BREAKDOWN TODAY ──
   const typeBreak=ei();
   ds.forEach(d=>TK.forEach(k=>{typeBreak[k]=String((parseInt(typeBreak[k])||0)+(parseInt(d.items[k])||0));}));
   if(TK.some(k=>parseInt(typeBreak[k])>0)){
@@ -840,7 +871,6 @@ function renderPtDetail(){
     h+=`</div>`;
   }
 
-  // ── TODAY DELIVERIES ──
   h+=`<div class="slbl">تسليمات اليوم (${ds.length})</div>`;
   if(!ds.length){h+=`<div class="empty">لا تسليمات اليوم لهذه النقطة</div>`;}
   else{
@@ -857,7 +887,6 @@ function renderPtDetail(){
     h+=`</div>`;
   }
 
-  // ── SETTLEMENT HISTORY ──
   if(ptSettlements.length){
     h+=`<div class="slbl">سجل التخليص (${ptSettlements.length} عملية)</div><div class="card">`;
     ptSettlements.forEach(st=>{
@@ -1007,9 +1036,6 @@ function confirmSettle(ptId){
     leftover:stl.leftover
   });
 
-  // Create a "virtual settlement marker" — we mark this date so next period starts after it
-  // (settlement already stored with dateTo=TODAY, calcSettlement will look after that)
-
   save();autoSync();closeModal();
   toast(`✓ تم تسجيل التخليص: ${Math.min(paid,stl.totalNet).toFixed(2)} د.م`);
   renderPtDetail();
@@ -1072,7 +1098,6 @@ function renderStats(){
   S.deliveries.forEach(d=>TK.forEach(k=>{typeTot[k]+=(parseInt(d.items[k])||0);}));
   S.leftovers.forEach(l=>TK.forEach(k=>{lftTot[k]+=(parseInt(l.items[k])||0);}));
 
-  // Total debt
   const totalDebt=S.points.reduce((s,pt)=>s+ptDebt(pt.id),0);
   const totalSettled=S.settlements.reduce((s,st)=>s+st.paid,0);
 
@@ -1158,12 +1183,12 @@ function renderStats(){
 // ═══════════════════════════════════════════════
 function renderSettings(){
   const connected=!!GD.token;const t=CFG.theme||'auto';
-  let h=`<div class="slbl">🎨 Thème de l'application</div>
+  let h=`<div class="slbl">🎨 مظهر التطبيق</div>
     <div class="card-flat">
       <div class="theme-pills">
-        <div class="theme-pill ${t==='light'?'on':''}" onclick="setTheme('light')">☀️<br>Clair</div>
-        <div class="theme-pill ${t==='auto'?'on':''}" onclick="setTheme('auto')">⚙️<br>Auto</div>
-        <div class="theme-pill ${t==='dark'?'on':''}" onclick="setTheme('dark')">🌙<br>Sombre</div>
+        <div class="theme-pill ${t==='light'?'on':''}" onclick="setTheme('light')">☀️<br>فاتح</div>
+        <div class="theme-pill ${t==='auto'?'on':''}" onclick="setTheme('auto')">⚙️<br>تلقائي</div>
+        <div class="theme-pill ${t==='dark'?'on':''}" onclick="setTheme('dark')">🌙<br>داكن</div>
       </div>
     </div>`;
 
@@ -1172,7 +1197,7 @@ function renderSettings(){
     <div class="card">
       <div class="fg"><label class="fl">Google Client ID</label>
         <input type="text" id="gcid" value="${CFG.googleClientId}" placeholder="xxxx.apps.googleusercontent.com"
-          oninput="CFG.googleClientId=this.value;save()">
+          oninput="CFG.googleClientId=this.value;save();initGoogleAuth();">
         <div style="font-size:11px;color:var(--tx2);margin-top:5px">من Google Cloud Console ← APIs ← Credentials</div>
       </div>
       <div class="srow">
@@ -1204,7 +1229,7 @@ function renderSettings(){
     <button class="btn btn-d" style="margin-top:14px" onclick="clearData()">🗑️ حذف جميع البيانات</button>
   </div>
 
-  <div style="text-align:center;padding:20px 0 10px;font-size:11px;color:var(--tx3)">مخبزتي v4 · يعمل بدون اتصال</div>`;
+  <div style="text-align:center;padding:20px 0 10px;font-size:11px;color:var(--tx3)">مخبزتي v4.1 · يعمل بدون اتصال</div>`;
 
   document.getElementById('scr-settings').innerHTML=h;
 }
@@ -1220,7 +1245,7 @@ function importData(inp){
 }
 function clearData(){
   if(!confirm('تأكيد حذف جميع البيانات؟ لا يمكن التراجع!'))return;
-  S={points:[],deliveries:[],leftovers:[],drivers:[],settlements:[]};
+  S={points:[],deliveries:[],leftovers:[],drivers:[],settlements:[],_ts:Date.now()};
   save();toast('تم مسح جميع البيانات');render();
 }
 
