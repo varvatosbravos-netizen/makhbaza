@@ -1158,15 +1158,6 @@ function renderStats(){
 // ═══════════════════════════════════════════════
 function renderSettings(){
   const connected=!!GD.token;const t=CFG.theme||'auto';
-  const currentTheme = document.documentElement.getAttribute('data-theme') || 'auto';
-h += `<div class="slbl">Thème de l'application</div>
-  <div class="card">
-    <div class="pills" style="justify-content:center">
-      <div class="pill ${currentTheme==='light'?'on':''}" onclick="setTheme('light')">☀️ Clair</div>
-      <div class="pill ${currentTheme==='auto'?'on':''}" onclick="setTheme('auto')">⚙️ Auto</div>
-      <div class="pill ${currentTheme==='dark'?'on':''}" onclick="setTheme('dark')">🌙 Sombre</div>
-    </div>
-  </div>`;
   let h=`<div class="slbl">🎨 Thème de l'application</div>
     <div class="card-flat">
       <div class="theme-pills">
@@ -1232,24 +1223,13 @@ function clearData(){
   S={points:[],deliveries:[],leftovers:[],drivers:[],settlements:[]};
   save();toast('تم مسح جميع البيانات');render();
 }
-function setTheme(t){
-  CFG.theme=t;
-  if(t==='auto'){
-    document.documentElement.removeAttribute('data-theme');
-  } else {
-    document.documentElement.setAttribute('data-theme',t);
-  }
-  save(); renderSettings();
-}
+
 // ═══════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════
 injectManifest();
 regSW();
 loadLocal();
-  if(CFG.theme && CFG.theme!=='auto'){
-  document.documentElement.setAttribute('data-theme', CFG.theme);
-}
 applyTheme();
 if(!DF.time)DF.time=nstr();
 render();
